@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using NerdStore.Identity.Database;
-using NerdStore.Identity.Domain;
 
 namespace NerdStore.Identity.Controllers.Seed
 {
@@ -9,13 +8,13 @@ namespace NerdStore.Identity.Controllers.Seed
     public class SeedController : ControllerBase
     {
         private readonly IdentityContext _context;
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
         public SeedController(
             IdentityContext context,
-            UserManager<User> userManager,
-            RoleManager<Role> roleManager
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager
         ) {
             _context = context;
             _userManager = userManager;
@@ -42,7 +41,12 @@ namespace NerdStore.Identity.Controllers.Seed
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             #region Users
 
-            var samUser = NerdStore.Identity.Domain.User.New("sam@blog.com");
+            var samUser = new IdentityUser
+            {
+                UserName = "sam@blog.com",
+                Email = "sam@blog.com",
+                EmailConfirmed = true
+            };
 
             await _userManager.CreateAsync(samUser, "Test@123");
 

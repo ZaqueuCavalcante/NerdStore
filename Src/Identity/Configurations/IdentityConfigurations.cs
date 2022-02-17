@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Identity;
 using NerdStore.Identity.Database;
-using NerdStore.Identity.Domain;
 
 namespace NerdStore.Identity.Configurations
 {
@@ -8,7 +7,7 @@ namespace NerdStore.Identity.Configurations
     {
         public static void AddIdentityConfigurations(this IServiceCollection services)
         {
-            services.AddIdentity<User, Role>()
+            services.AddIdentity<IdentityUser, IdentityRole>()
                 .AddEntityFrameworkStores<IdentityContext>()
                 .AddDefaultTokenProviders();
 

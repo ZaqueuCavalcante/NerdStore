@@ -1,13 +1,11 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using NerdStore.Identity.Domain;
 
 namespace NerdStore.Identity.Database
 {
-    public class IdentityContext : IdentityDbContext<User, Role, string>
+    public class IdentityContext : IdentityDbContext<IdentityUser, IdentityRole, string>
     {
-        public DbSet<RefreshToken> RefreshTokens { get; set; }
-
         public IdentityContext(DbContextOptions<IdentityContext> options) : base(options) {}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
@@ -16,9 +14,7 @@ namespace NerdStore.Identity.Database
         {
             base.OnModelCreating(builder);
 
-            builder.HasDefaultSchema("identity");
-
-            builder.ApplyConfigurationsFromAssembly(GetType().Assembly);
+            builder.HasDefaultSchema("auth");
         }
     }
 }

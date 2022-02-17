@@ -1,9 +1,7 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using NerdStore.Identity.Domain;
 using NerdStore.Identity.Managers;
 using NerdStore.Identity.Extensions;
 
@@ -12,14 +10,14 @@ namespace NerdStore.Identity.Controllers.Users
     [ApiController, Route("[controller]")]
     public class UsersController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
-        private readonly SignInManager<User> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
         private readonly TokenManager _tokenManager;
         private IConfiguration _configuration;
 
         public UsersController(
-            UserManager<User> userManager,
-            SignInManager<User> signInManager,
+            UserManager<IdentityUser> userManager,
+            SignInManager<IdentityUser> signInManager,
             TokenManager tokenManager,
             IConfiguration configuration
         ) {
@@ -35,13 +33,18 @@ namespace NerdStore.Identity.Controllers.Users
         [HttpPost("new"), AllowAnonymous]
         public async Task<IActionResult> RegisterNewUser(UserIn dto)
         {
-            var user = NerdStore.Identity.Domain.User.New(dto.Email);
+            var user = new IdentityUser
+            {
+                UserName = dto.Email,
+                Email = dto.Email,
+                EmailConfirmed = true
+            };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
 
-            return Created("", user);
+            return Created("", "User registered!");
         }
 
         /// <summary>
@@ -59,14 +62,13 @@ namespace NerdStore.Identity.Controllers.Users
 
             if (result.Succeeded)
             {
-                var (accessToken, refreshToken) = await _tokenManager.GenerateTokens(dto.Email);
+                var accessToken = await _tokenManager.GenerateAccessToken(dto.Email);
 
                 var response =  new LoginOut
                 {
                     AccessToken = accessToken,
                     TokenType = "Bearer",
                     ExpiresInMinutes = _configuration["Jwt:ExpirationTimeInMinutes"],
-                    RefreshToken = refreshToken,
                     Scope = "create"
                 };
 
@@ -93,8 +95,6 @@ namespace NerdStore.Identity.Controllers.Users
         {
             await _signInManager.SignOutAsync();
 
-            await _tokenManager.RevokeRefreshTokens(User.GetId());
-
             return Ok("Logout succeeded.");
         }
 
@@ -105,10 +105,6 @@ namespace NerdStore.Identity.Controllers.Users
         public async Task<ActionResult> ChangePassword(ChangePasswordIn dto)
         {
             var userId = User.GetId();
-
-            var error = await _tokenManager.FindUnunsedRefreshTokens(userId);
-            if (error != null)
-                return BadRequest(error);
 
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -122,30 +118,6 @@ namespace NerdStore.Identity.Controllers.Users
                 return Ok("Password changed.");
 
             return BadRequest("Password not changed.");
-        }
-
-        /// <summary>
-        /// Refresh a access token.
-        /// </summary>
-        [HttpPost("refresh-token"), AllowAnonymous]
-        public async Task<ActionResult> RefreshToken(RefreshTokenIn dto)
-        {
-            var error = await _tokenManager.TryUseRefreshToken(dto.AccessToken, dto.RefreshToken);
-            if (error != null)
-                return BadRequest(error);
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var userEmail = tokenHandler.ReadJwtToken(dto.AccessToken)
-                .Claims.First(x => x.Type == JwtRegisteredClaimNames.Email).Value;
-
-            var (accessToken, refreshToken) = await _tokenManager.GenerateTokens(userEmail);
-            var response = new RefreshTokenOut
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken
-            };
-
-            return Ok(response);
         }
     }
 }

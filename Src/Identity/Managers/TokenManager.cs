@@ -4,92 +4,26 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography;
-using NerdStore.Identity.Domain;
-using NerdStore.Identity.Database;
 
 namespace NerdStore.Identity.Managers
 {
     public class TokenManager
     {
-        private readonly UserManager<User> _userManager;
-        private readonly RoleManager<Role> _roleManager;
-        private readonly IdentityContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private IConfiguration _configuration;
-        private TokenValidationParameters _tokenValidationParameters;
 
         public TokenManager(
-            UserManager<User> userManager,
-            RoleManager<Role> roleManager,
-            IdentityContext context,
+            UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             IConfiguration configuration
         ) {
             _userManager = userManager;
             _roleManager = roleManager;
-            _context = context;
             _configuration = configuration;
-            SetTokenValidationParameters();
         }
 
-        public async Task<(string accessToken, string refreshToken)> GenerateTokens(string userEmail)
-        {
-            var accessToken = await GenerateAccessToken(userEmail);
-            var refreshToken = await GenerateRefreshToken(userEmail, accessToken);
-            return (accessToken, refreshToken);
-        }
-
-        public async Task<string?> TryUseRefreshToken(string accessToken, string refreshToken)
-        {
-            try
-            {
-                var jwtTokenHandler = new JwtSecurityTokenHandler();
-                var user = jwtTokenHandler.ValidateToken(accessToken, _tokenValidationParameters, out var validatedToken);
-
-                if (GetExpDate(user.Claims) > DateTime.UtcNow)
-                    return "Access token has not expired.";
-
-                var storedRefreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(x => x.Token == refreshToken); 
-                if (storedRefreshToken == null)
-                    return "Refresh token doesnt exist.";
-
-                var jti = user.Claims.First(x => x.Type == JwtRegisteredClaimNames.Jti).Value;
-                var error = storedRefreshToken.TryUse(jti);
-                if (error != null)
-                    return error;
-
-                await _context.SaveChangesAsync();
-
-                return null;
-            }
-            catch
-            {
-                return "Invalid access token.";
-            }
-        }
-
-        public async Task RevokeRefreshTokens(string userId)
-        {
-            var refreshTokens = await _context.RefreshTokens.Where(t =>
-                t.UserId == userId && t.UsedAt == null && t.RevokedAt == null).ToListAsync();
-
-            refreshTokens.ForEach(t => t.Revoke());
-
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<string?> FindUnunsedRefreshTokens(string userId)
-        {
-            var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(t =>
-                t.UserId == userId && t.UsedAt == null && t.RevokedAt == null);
-
-            if (refreshToken == null)
-                return "Make login again.";
-
-            return null;
-        }
-
-        // TODO: add tests...
-        private async Task<string> GenerateAccessToken(string email)
+        public async Task<string> GenerateAccessToken(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
 
@@ -141,72 +75,6 @@ namespace NerdStore.Identity.Managers
             var tokenHandler = new JwtSecurityTokenHandler();
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
-        }
-
-        // TODO: add tests...
-        private async Task<string> GenerateRefreshToken(string userEmail, string accessToken)
-        {
-            var user = await _userManager.FindByEmailAsync(userEmail);
-
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtId = tokenHandler.ReadJwtToken(accessToken)
-                .Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
-
-            var refreshTokenexpirationTime = double.Parse(_configuration["Jwt:RefreshTokenExpirationTimeInMinutes"]);
-
-            var refreshToken = new RefreshToken
-            {
-                UserId = user.Id,
-                Token = GenerateRandomBase64(),
-                JwtId = jwtId,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(refreshTokenexpirationTime),
-                UsedAt = null,
-                RevokedAt = null
-            };
-
-            await _context.RefreshTokens.AddAsync(refreshToken);
-            await _context.SaveChangesAsync();
-
-            return refreshToken.Token;
-        }
-
-        private void SetTokenValidationParameters()
-        {
-            _tokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuer = true,
-                ValidIssuer = _configuration["Jwt:Issuer"],
-
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(
-                    Encoding.ASCII.GetBytes(_configuration["Jwt:SecurityKey"])
-                ),
-
-                ValidateAudience = true,
-                ValidAudience = _configuration["Jwt:Audience"],
-
-                ValidateLifetime = false,
-
-                RoleClaimType = "role"
-            };
-        }
-
-        private DateTime GetExpDate(IEnumerable<Claim> userClaims)
-        {
-            var utcExpiryDate = long.Parse(userClaims.First(x => x.Type == JwtRegisteredClaimNames.Exp).Value);
-            var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
-            return dateTime.AddSeconds(utcExpiryDate).ToUniversalTime();
-        }
-
-        private string GenerateRandomBase64(int length = 42)
-        {
-            var randomNumber = new byte[length];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
         }
     }
 }
