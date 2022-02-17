@@ -11,6 +11,11 @@ namespace NerdStore.Identity.Database.Configurations
             refreshToken.ToTable("refresh_tokens");
 
             refreshToken.HasKey(rt => rt.Id);
+
+            refreshToken.HasOne<User>()
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(rt => rt.UserId)
+                .IsRequired();
         }
     }
 }

@@ -1,9 +1,10 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NerdStore.Identity.Domain;
 
 namespace NerdStore.Identity.Database
 {
-    public class IdentityContext : DbContext
+    public class IdentityContext : IdentityDbContext<User, Role, string>
     {
         public DbSet<RefreshToken> RefreshTokens { get; set; }
 

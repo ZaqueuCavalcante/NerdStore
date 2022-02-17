@@ -9,9 +9,9 @@ namespace NerdStore.Identity.Extensions
             return date.ToString("dd/MM/yyyy HH:mm");
         }
 
-        public static int GetId(this ClaimsPrincipal user)
+        public static string GetId(this ClaimsPrincipal user)
         {
-            return int.Parse(user.FindFirstValue("sub"));
+            return user.FindFirstValue("sub");
         }
 
         public static string GetRoot(this HttpRequest request)

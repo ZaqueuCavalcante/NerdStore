@@ -30,7 +30,22 @@ namespace NerdStore.Identity.Controllers.Users
         }
 
         /// <summary>
-        /// Login into blog.
+        /// Register a new user.
+        /// </summary>
+        [HttpPost("new"), AllowAnonymous]
+        public async Task<IActionResult> RegisterNewUser(UserIn dto)
+        {
+            var user = NerdStore.Identity.Domain.User.New(dto.Email);
+
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Created("", user);
+        }
+
+        /// <summary>
+        /// Login into app.
         /// </summary>
         [HttpPost("login"), AllowAnonymous]
         public async Task<ActionResult> Login(UserIn dto)
@@ -59,19 +74,19 @@ namespace NerdStore.Identity.Controllers.Users
             }
 
             if (result.IsLockedOut)
-                return Ok("Account locked.");
+                return BadRequest("Account locked.");
 
             if (result.IsNotAllowed)
-                return Ok("Login not allowed.");
+                return BadRequest("Login not allowed.");
 
             if (result.RequiresTwoFactor)
-                return Ok("Requires two factor.");
+                return BadRequest("Requires two factor.");
             
-            return Ok("Login failed.");
+            return BadRequest("Login failed.");
         }
 
         /// <summary>
-        /// Logout of the blog.
+        /// Logout of the app.
         /// </summary>
         [HttpPost("logout"), Authorize]
         public async Task<ActionResult> Logout()

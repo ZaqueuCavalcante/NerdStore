@@ -67,7 +67,7 @@ namespace NerdStore.Identity.Managers
             }
         }
 
-        public async Task RevokeRefreshTokens(int userId)
+        public async Task RevokeRefreshTokens(string userId)
         {
             var refreshTokens = await _context.RefreshTokens.Where(t =>
                 t.UserId == userId && t.UsedAt == null && t.RevokedAt == null).ToListAsync();
@@ -77,7 +77,7 @@ namespace NerdStore.Identity.Managers
             await _context.SaveChangesAsync();
         }
 
-        public async Task<string?> FindUnunsedRefreshTokens(int userId)
+        public async Task<string?> FindUnunsedRefreshTokens(string userId)
         {
             var refreshToken = await _context.RefreshTokens.FirstOrDefaultAsync(t =>
                 t.UserId == userId && t.UsedAt == null && t.RevokedAt == null);
