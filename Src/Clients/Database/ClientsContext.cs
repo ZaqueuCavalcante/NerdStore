@@ -5,7 +5,7 @@ namespace NerdStore.Clients.Database
 {
     public class ClientsContext : DbContext
     {
-        // public DbSet<Product> Products { get; set; }
+        public DbSet<Client> Clients { get; set; }
 
         public ClientsContext(DbContextOptions<ClientsContext> options) : base(options) {}
 

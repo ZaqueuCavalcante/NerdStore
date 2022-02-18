@@ -2,7 +2,7 @@ namespace NerdStore.Clients.Domain
 {
     public class Client
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public string Cpf { get; set; }
 
@@ -10,9 +10,21 @@ namespace NerdStore.Clients.Domain
 
         public string Email { get; set; }
 
-        public bool Excluded { get; set; }
+        public bool IsExcluded { get; set; }
 
         public int AddressId { get; set; }
         public Address Address { get; set; }
+
+        public Client(
+            Guid id,
+            string cpf,
+            string name,
+            string email
+        ) {
+            Id = id;
+            Cpf = cpf;
+            Name = name;
+            Email = email;
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace NerdStore.Clients.Domain
     {
         public int Id { get; set; }
 
-        public int ClientId { get; set; }
+        public Guid ClientId { get; set; }
 
         public string CEP { get; set; }
 
