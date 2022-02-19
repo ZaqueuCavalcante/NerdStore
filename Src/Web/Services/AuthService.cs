@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Web.Models;
 
 namespace Web.Services
@@ -16,26 +15,16 @@ namespace Web.Services
 
         public async Task<LoginOut> Login(UserIn dto)
         {
-            var content = new StringContent(
-                JsonSerializer.Serialize(dto),
-                Encoding.UTF8,
-                "application/json"
-            );
+            var response = await _httpClient.PostAsync("/users/login", dto.ToJson());
 
-            var response = await _httpClient.PostAsync("/users/login", content);
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
-            return JsonSerializer.Deserialize<LoginOut>(await response.Content.ReadAsStringAsync());
+            return JsonSerializer.Deserialize<LoginOut>(await response.Content.ReadAsStringAsync(), options);
         }
 
         public async Task<string> Register(UserIn dto)
         {
-            var content = new StringContent(
-                JsonSerializer.Serialize(dto),
-                Encoding.UTF8,
-                "application/json"
-            );
-
-            var response = await _httpClient.PostAsync("/users/new", content);
+            var response = await _httpClient.PostAsync("/users/new", dto.ToJson());
 
             return "Ok";
         }

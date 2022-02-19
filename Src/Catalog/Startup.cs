@@ -21,11 +21,7 @@ namespace NerdStore.Catalog
 
             services.AddEfCoreConfigurations(Configuration);
 
-            // services.AddIdentityConfigurations();
-
-            // services.AddAuthenticationConfigurations(Configuration);
-
-            // services.AddAuthorizationConfigurations();
+            services.AddAuthenticationConfigurations(Configuration);
         }
 
         public void Configure(
@@ -50,7 +46,6 @@ namespace NerdStore.Catalog
 
             app.UseRouting();
 
-            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(builder =>

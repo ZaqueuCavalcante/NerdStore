@@ -42,10 +42,25 @@ public class UsersController : Controller
     {
         var response = await _authService.Login(dto);
 
-        var token = new JwtSecurityTokenHandler().ReadToken(response.AccessToken) as JwtSecurityToken;
+        await SignIn(response.AccessToken);
+
+        return RedirectToAction("Index", "Home");
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        var response = await _authService.Logout();
+
+        return Ok();
+    }
+
+    private async Task SignIn(string accessToken)
+    {
+        var token = new JwtSecurityTokenHandler().ReadToken(accessToken) as JwtSecurityToken;
 
         var claims = new List<Claim>();
-        claims.Add(new Claim("JWT", response.AccessToken));
+        claims.Add(new Claim("JWT", accessToken));
         claims.AddRange(token.Claims);
 
         var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -61,15 +76,5 @@ public class UsersController : Controller
             new ClaimsPrincipal(claimsIdentity),
             authProperties  
         );
-
-        return RedirectToAction("Index", "Home");
-    }
-
-    [HttpPost("logout")]
-    public async Task<IActionResult> Logout()
-    {
-        var response = await _authService.Logout();
-
-        return View();
     }
 }

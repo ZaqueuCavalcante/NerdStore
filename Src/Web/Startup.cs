@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Web.Models;
 using Web.Services;
 
 namespace NerdStore.Web
@@ -24,6 +25,10 @@ namespace NerdStore.Web
             services.AddControllersWithViews();
 
             services.AddHttpClient<IAuthService, AuthService>();
+
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+            services.AddScoped<IWebUser, WebUser>();
         }
 
         public void Configure(

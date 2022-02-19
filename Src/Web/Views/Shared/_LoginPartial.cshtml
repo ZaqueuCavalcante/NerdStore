@@ -1,20 +1,22 @@
-﻿<ul class="navbar-nav">
-    @if (Context.User.Identity.IsAuthenticated)
+﻿@inject IWebUser _user
+
+<ul class="navbar-nav">
+    @if (_user.IsAuthenticated())
     {
-    <li class="nav-item">
-        <a class="nav-link text-dark" title="Manage">Hello nerd!</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link text-dark" asp-controller="Users" asp-action="Logout">Logout</a>
-    </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" title="Manage">Hello @_user.GetEmail()</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link text-dark" asp-controller="Users" asp-action="Logout">Logout</a>
+        </li>
     }
     else
     {
-    <li class="nav-item" style="padding-right: 30px;">
-        <a class="btn btn-success" asp-controller="Users" asp-action="Register">Create new account</a>
-    </li>
-    <li class="nav-item">
-        <a class="btn btn-primary" asp-controller="Users" asp-action="Login">Login</a>
-    </li>
+        <li class="nav-item" style="padding-right: 30px;">
+            <a class="btn btn-success" asp-controller="Users" asp-action="Register">Create new account</a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-primary" asp-controller="Users" asp-action="Login">Login</a>
+        </li>
     }
 </ul>

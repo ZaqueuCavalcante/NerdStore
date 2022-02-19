@@ -10,7 +10,7 @@ namespace NerdStore.Catalog.Database.Configurations
         {
             product.ToTable("products");
 
-            product.HasKey(u => u.Id);
+            product.HasKey(p => p.Id);
         }
     }
 }
