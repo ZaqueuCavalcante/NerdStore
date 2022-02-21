@@ -20,9 +20,9 @@ namespace NerdStore.Clients.Database.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
-            client.HasOne<Address>(c => c.Address)
+            client.HasOne(c => c.Address)
                 .WithOne()
-                .HasForeignKey<Address>(a => a.ClientId)
+                .HasForeignKey<Client>(c => c.AddressId)
                 .IsRequired(false);
         }
     }

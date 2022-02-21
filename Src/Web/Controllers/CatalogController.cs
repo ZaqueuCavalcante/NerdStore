@@ -1,33 +1,29 @@
-﻿using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc;
-using Web.Models;
+﻿using Microsoft.AspNetCore.Mvc;
 using Web.Services;
 
 namespace Web.Controllers;
 
 public class CatalogController : Controller
 {
-    private readonly IAuthService _authService;
+    private readonly ICatalogService _catalogService;
 
-    public CatalogController(IAuthService authService)
+    public CatalogController(ICatalogService catalogService)
     {
-        _authService = authService;
+        _catalogService = catalogService;
     }
 
     [HttpGet("catalog")]
-    public IActionResult Index()
+    public async Task<IActionResult> Products()
     {
-        return Ok();
+        var products = await _catalogService.GetProducts();
+        return View(products);
     }
 
-    // [HttpPost("new")]
-    // public async Task<IActionResult> Register(UserIn dto)
-    // {
-    //     var response = await _authService.Register(dto);
-    //
-    //     return View();
-    // }
+    [HttpGet("catalog/{id}")]
+    public async Task<IActionResult> Product(Guid id)
+    {
+        var product = await _catalogService.GetProduct(id);
+
+        return View(product);
+    }
 }

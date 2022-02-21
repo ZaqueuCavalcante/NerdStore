@@ -46,6 +46,7 @@ namespace NerdStore.Catalog
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(builder =>

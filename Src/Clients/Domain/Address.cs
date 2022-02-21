@@ -2,9 +2,7 @@ namespace NerdStore.Clients.Domain
 {
     public class Address
     {
-        public int Id { get; set; }
-
-        public Guid ClientId { get; set; }
+        public Guid Id { get; set; }
 
         public string CEP { get; set; }
 

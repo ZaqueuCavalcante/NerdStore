@@ -26,6 +26,8 @@ namespace NerdStore.Web
 
             services.AddHttpClient<IAuthService, AuthService>();
 
+            services.AddHttpClient<ICatalogService, CatalogService>();
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddScoped<IWebUser, WebUser>();

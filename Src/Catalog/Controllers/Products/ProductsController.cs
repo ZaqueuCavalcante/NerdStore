@@ -17,6 +17,20 @@ namespace NerdStore.Catalog.Controllers.Products
         }
 
         /// <summary>
+        /// Return a products.
+        /// </summary>
+        [HttpGet("{id}"), AllowAnonymous]
+        public async Task<ActionResult> GetProduct(Guid id)
+        {
+            var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == id);
+
+            if (product is null)
+                return NotFound();
+            
+            return Ok(product);
+        }
+
+        /// <summary>
         /// Return all products.
         /// </summary>
         [HttpGet, AllowAnonymous]
